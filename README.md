@@ -120,20 +120,22 @@ client/src/
 ## Deploying (Vercel + Render)
 
 The API uses long-lived WebSocket connections and a Bull worker, which don't fit Vercel's serverless
-model — so the stack is split:
+model, so the stack is split:
 
 | Piece | Host | Notes |
 |---|---|---|
-| React client () | **Vercel** | Root directory , framework Vite.  handles SPA routing. |
-| API (+ embedded AI worker) | **Render** free web service | Defined in .  runs the queue worker in the API process. |
-| Redis | Render Key Value (free) | Created by the same Blueprint;  is wired automatically. |
-| MongoDB | MongoDB Atlas (free M0) | Dedicated DB user; set  in Render. |
+| React client (`client/`) | **Vercel** | Root directory `client`, framework Vite. `client/vercel.json` handles SPA routing. |
+| API (+ embedded AI worker) | **Render** free web service | Defined in `render.yaml`. `EMBED_WORKER=true` runs the queue worker in the API process. |
+| Redis | Render Key Value (free) | Created by the same Blueprint; `REDIS_URL` is wired automatically. |
+| MongoDB | MongoDB Atlas (free M0) | Dedicated DB user; set `MONGO_URI` in Render. |
 
-1. Create the Atlas cluster, then deploy  as a Blueprint and enter  and
-    (your Vercel URL) when prompted.
-2. Seed once from a Render shell: .
+1. Create the Atlas cluster, then deploy `render.yaml` as a Blueprint and enter `MONGO_URI` and
+   `CLIENT_ORIGIN` (your Vercel URL) when prompted.
+2. Seed once from a Render shell: `npm run seed:demo`.
 3. In Vercel, set:
-   -    - 4. Optional: set  for live AI; otherwise it runs in mock mode.
+   - `VITE_API_URL=https://<your-api>.onrender.com/api`
+   - `VITE_SOCKET_URL=https://<your-api>.onrender.com`
+4. Optional: set `OPENAI_API_KEY` for live AI; otherwise it runs in mock mode.
 
- accepts a comma-separated list, so a custom domain and preview URLs can coexist. On a
-paid plan you can split the worker back out with  as a background worker.
+`CLIENT_ORIGIN` accepts a comma-separated list, so a custom domain and preview URLs can coexist. On a
+paid plan you can split the worker back out with `npm run worker` as a background worker.
