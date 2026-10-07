@@ -8,6 +8,10 @@ const app = require('./app');
 async function main() {
   await connectDB();
 
+  // Single-process mode for hosts without background workers (e.g. Render free tier).
+  // Locally and in docker-compose the worker runs as its own process instead.
+  if (process.env.EMBED_WORKER === 'true') require('./worker');
+
   const httpServer = http.createServer(app);
   initSocket(httpServer);
 

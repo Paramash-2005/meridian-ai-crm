@@ -119,22 +119,21 @@ client/src/
 
 ## Deploying (Vercel + Render)
 
-The API uses long-lived WebSocket connections and a background Bull worker, which don't fit Vercel's
-serverless model — so the stack is split:
+The API uses long-lived WebSocket connections and a Bull worker, which don't fit Vercel's serverless
+model — so the stack is split:
 
 | Piece | Host | Notes |
 |---|---|---|
-| React client (`client/`) | **Vercel** | Root directory `client`, framework Vite. `client/vercel.json` handles SPA routing. |
-| API + worker (`server/`) | **Render** (see `render.yaml`) | Web service + background worker from one Blueprint. |
-| MongoDB | MongoDB Atlas (free tier) | Use a dedicated DB user; restrict network access. |
-| Redis | Upstash or Render Redis | Use the `rediss://` (TLS) URL. |
+| React client () | **Vercel** | Root directory , framework Vite.  handles SPA routing. |
+| API (+ embedded AI worker) | **Render** free web service | Defined in .  runs the queue worker in the API process. |
+| Redis | Render Key Value (free) | Created by the same Blueprint;  is wired automatically. |
+| MongoDB | MongoDB Atlas (free M0) | Dedicated DB user; set  in Render. |
 
-1. Create the Atlas cluster and Redis instance, then deploy `render.yaml` as a Blueprint and fill in
-   `MONGO_URI`, `REDIS_URL`, `CLIENT_ORIGIN` (your Vercel URL) in the Render dashboard.
-2. Seed once from a Render shell: `npm run seed:demo`.
-3. In Vercel, import the repo with root directory `client` and set:
-   - `VITE_API_URL=https://<your-api>.onrender.com/api`
-   - `VITE_SOCKET_URL=https://<your-api>.onrender.com`
-4. Optional: set `OPENAI_API_KEY` on both Render services for live AI; otherwise it runs in mock mode.
+1. Create the Atlas cluster, then deploy  as a Blueprint and enter  and
+    (your Vercel URL) when prompted.
+2. Seed once from a Render shell: .
+3. In Vercel, set:
+   -    - 4. Optional: set  for live AI; otherwise it runs in mock mode.
 
-`CLIENT_ORIGIN` accepts a comma-separated list, so a custom domain and preview URLs can coexist.
+ accepts a comma-separated list, so a custom domain and preview URLs can coexist. On a
+paid plan you can split the worker back out with  as a background worker.

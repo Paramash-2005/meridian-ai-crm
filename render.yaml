@@ -1,30 +1,28 @@
-# Render Blueprint: API + background AI worker. The frontend is deployed separately on Vercel.
-# Secrets marked `sync: false` are entered in the Render dashboard, never committed.
+# Render Blueprint: one free web service (API + embedded AI worker) and a Redis-compatible Key Value store.
+# The frontend is deployed separately on Vercel. Secrets marked `sync: false` are entered in the
+# Render dashboard, never committed.
 services:
   - type: web
     name: meridian-api
     runtime: node
+    plan: free
     rootDir: server
     buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
       - { key: NODE_ENV, value: production }
+      - { key: EMBED_WORKER, value: "true" }  # free tier has no background workers; run jobs in-process
+      - key: REDIS_URL
+        fromService: { type: keyvalue, name: meridian-redis, property: connectionString }
       - { key: MONGO_URI, sync: false }      # MongoDB Atlas connection string
-      - { key: REDIS_URL, sync: false }      # Upstash/Render Redis (rediss://...)
       - { key: CLIENT_ORIGIN, sync: false }  # https://<your-app>.vercel.app
       - { key: JWT_SECRET, generateValue: true }
-      - { key: OPENAI_API_KEY, sync: false }
+      - { key: OPENAI_API_KEY, sync: false } # optional; blank = mock AI mode
       - { key: OPENAI_MODEL, value: gpt-4o-mini }
-  - type: worker
-    name: meridian-worker
-    runtime: node
-    rootDir: server
-    buildCommand: npm ci
-    startCommand: npm run worker
-    envVars:
-      - { key: NODE_ENV, value: production }
-      - { key: MONGO_URI, sync: false }
-      - { key: REDIS_URL, sync: false }
-      - { key: OPENAI_API_KEY, sync: false }
-      - { key: OPENAI_MODEL, value: gpt-4o-mini }
+
+  - type: keyvalue
+    name: meridian-redis
+    plan: free
+    maxmemoryPolicy: noeviction  # Bull queues must not be evicted
+    ipAllowList: []              # internal network only
