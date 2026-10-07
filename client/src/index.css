@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #FAF9F6;
+  --color-paper-alt: #FBFAF7;
+  --color-surface: #FFFFFF;
+  --color-navy: #1B2430;
+  --color-navy-soft: #ffffff12;
+  --color-accent: #A8863C;
+  --color-accent-dark: #8A6B2E;
+  --color-ink: #1A1A1A;
+  --color-ink-secondary: #6B6B6B;
+  --color-ink-faint: #979389;
+  --color-hairline: #E3E1DC;
+
+  --color-good: #2F7A4A;
+  --color-warning: #96631E;
+  --color-serious: #B5541F;
+  --color-critical: #8B2635;
+  --color-neutral: #6B6B6B;
+
+  --color-chart-1: #B8863C;
+  --color-chart-2: #1E7FA8;
+  --color-chart-3: #A13F45;
+  --color-chart-4: #6B8F3E;
+  --color-chart-5: #5F6FB0;
+
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'IBM Plex Sans', -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', monospace;
+}
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-serif);
+  margin: 0;
+}
+
+a {
+  color: var(--color-accent);
+}
+a:hover {
+  color: var(--color-accent-dark);
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-accent) !important;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.badge {
+  display: inline-block;
+  border-radius: 3px;
+  padding: 3px 9px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+  border: 1px solid currentColor;
+  background: transparent;
+}
+
+.eyebrow {
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-secondary);
+}

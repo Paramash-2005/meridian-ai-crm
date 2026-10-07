@@ -1,0 +1,73 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    volumes:
+      - mongo-data:/data/db
+    networks: [crm-net]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    volumes:
+      - redis-data:/data
+    networks: [crm-net]
+
+  api:
+    build: ./server
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      MONGO_URI: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongo:27017/meridian-crm?authSource=admin
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: 12h
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      CLIENT_ORIGIN: http://localhost:8080
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+    depends_on: [mongo, redis]
+    networks: [crm-net]
+
+  worker:
+    build: ./server
+    restart: unless-stopped
+    command: ["node", "src/worker.js"]
+    environment:
+      NODE_ENV: production
+      MONGO_URI: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongo:27017/meridian-crm?authSource=admin
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+    depends_on: [mongo, redis]
+    networks: [crm-net]
+
+  # One-off: `docker compose run --rm seed` to (re)seed demo data.
+  seed:
+    build: ./server
+    command: ["node", "src/seed.js"]
+    profiles: ["tools"]
+    environment:
+      MONGO_URI: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongo:27017/meridian-crm?authSource=admin
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+    depends_on: [mongo, redis]
+    networks: [crm-net]
+
+  client:
+    build: ./client
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on: [api]
+    networks: [crm-net]
+
+networks:
+  crm-net:
+
+volumes:
+  mongo-data:
+  redis-data:

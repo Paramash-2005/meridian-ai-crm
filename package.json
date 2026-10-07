@@ -1,0 +1,18 @@
+{
+  "name": "meridian-crm",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Meridian CRM — an AI-assisted CRM (React/Tailwind + Express/MongoDB + OpenAI/LangChain + Socket.io + Bull/Redis)",
+  "scripts": {
+    "install:all": "npm install --prefix server && npm install --prefix client",
+    "dev:api": "npm run dev --prefix server",
+    "dev:worker": "npm run worker:dev --prefix server",
+    "dev:client": "npm run dev --prefix client",
+    "dev": "concurrently -n api,worker,client -c blue,yellow,magenta \"npm:dev:api\" \"npm:dev:worker\" \"npm:dev:client\"",
+    "seed": "npm run seed --prefix server",
+    "seed:demo": "npm run seed:demo --prefix server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.4"
+  }
+}
