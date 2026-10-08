@@ -65,7 +65,7 @@ Open **http://localhost:5173**.
 **Demo logins:**
 | Email | Password | Role |
 |---|---|---|
-| admin@meridiancrm.com | Admin@123 | Admin |
+| paramash@meridiancrm.com | Admin@123 | Admin |
 | james@meridiancrm.com | Sales@123 | Sales Rep |
 | priya@meridiancrm.com | Sales@123 | Sales Rep |
 

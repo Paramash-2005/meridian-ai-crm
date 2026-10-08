@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 export default function Login() {
   const { token, login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('admin@meridiancrm.com');
+  const [email, setEmail] = useState('paramash@meridiancrm.com');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -92,7 +92,7 @@ export default function Login() {
 
           <div className="text-[11.5px] text-ink-faint text-center leading-relaxed">
             <p className="m-0">Demo logins:</p>
-            <p className="m-0">admin@meridiancrm.com / Admin@123 (admin)</p>
+            <p className="m-0">paramash@meridiancrm.com / Admin@123 (admin)</p>
             <p className="m-0">james@meridiancrm.com / Sales@123 (sales rep)</p>
           </div>
         </form>

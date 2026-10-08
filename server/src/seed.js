@@ -51,14 +51,14 @@ async function main() {
   await aiQueue.empty();
 
   const users = await User.insertMany([
-    { name: 'Meredith Alcott', email: 'admin@meridiancrm.com', passwordHash: bcrypt.hashSync('Admin@123', 10), role: 'admin' },
+    { name: 'Paramash', email: 'paramash@meridiancrm.com', passwordHash: bcrypt.hashSync('Admin@123', 10), role: 'admin' },
     { name: 'James Okafor', email: 'james@meridiancrm.com', passwordHash: bcrypt.hashSync('Sales@123', 10), role: 'sales-rep' },
     { name: 'Priya Anand', email: 'priya@meridiancrm.com', passwordHash: bcrypt.hashSync('Sales@123', 10), role: 'sales-rep' },
   ]);
 
   console.log(`Seed complete — ${users.length} users created, leads table left empty.`);
   console.log('Logins:');
-  console.log('  admin@meridiancrm.com / Admin@123 (admin)');
+  console.log('  paramash@meridiancrm.com / Admin@123 (admin)');
   console.log('  james@meridiancrm.com / Sales@123 (sales-rep)');
   console.log('  priya@meridiancrm.com / Sales@123 (sales-rep)');
 
