@@ -4,8 +4,24 @@ const { scopeLeadsMatch } = require('../middleware/rbac');
 
 const router = express.Router();
 
+const TREND_MONTHS = 4;
+
+// The trend chart is labelled "Last 4 months": return exactly those calendar months (UTC, matching
+// $dateToString's default), oldest first, so empty months show as 0 instead of vanishing.
+function trendWindow() {
+  const now = new Date();
+  const keys = [];
+  for (let i = TREND_MONTHS - 1; i >= 0; i--) {
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+    keys.push(`${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`);
+  }
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (TREND_MONTHS - 1), 1));
+  return { keys, start };
+}
+
 router.get('/summary', async (req, res) => {
   const match = scopeLeadsMatch(req);
+  const trend = trendWindow();
 
   const [totals, byStatus, bySource, monthly, topLeads] = await Promise.all([
     Lead.aggregate([
@@ -25,7 +41,7 @@ router.get('/summary', async (req, res) => {
     Lead.aggregate([{ $match: match }, { $group: { _id: '$status', count: { $sum: 1 } } }]),
     Lead.aggregate([{ $match: match }, { $group: { _id: '$source', count: { $sum: 1 } } }]),
     Lead.aggregate([
-      { $match: match },
+      { $match: { ...match, createdAt: { $gte: trend.start } } },
       { $group: { _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } }, count: { $sum: 1 } } },
       { $sort: { _id: 1 } },
     ]),
@@ -48,7 +64,7 @@ router.get('/summary', async (req, res) => {
     avgScore: t.avgScore,
     leadsByStatus: byStatus.map((r) => ({ status: r._id, count: r.count })),
     leadsBySource: bySource.map((r) => ({ source: r._id, count: r.count })),
-    leadsByMonth: monthly.map((r) => ({ month: r._id, count: r.count })),
+    leadsByMonth: trend.keys.map((month) => ({ month, count: monthly.find((r) => r._id === month)?.count || 0 })),
     topLeads,
   });
 });

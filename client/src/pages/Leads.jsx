@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { api } from '../api';
@@ -105,18 +105,23 @@ export default function Leads() {
   const [replying, setReplying] = useState(false);
   const [error, setError] = useState('');
 
+  // loadLeads is memoised on [token] only, so it must read the current selection through a ref —
+  // a captured `selectedId` is stale and made every live refresh jump back to the first lead.
+  const selectedIdRef = useRef(null);
+  useEffect(() => { selectedIdRef.current = selectedId; }, [selectedId]);
+
   const loadLeads = useCallback((preferId) => {
     api.getLeads(token).then((rows) => {
       setLeads(rows);
-      if (rows.length && !rows.some((r) => r._id === (preferId ?? selectedId))) {
-        setSelectedId(rows[0]._id);
-      } else if (preferId) {
-        setSelectedId(preferId);
-      } else if (!selectedId && rows.length) {
-        setSelectedId(rows[0]._id);
+      const wanted = preferId ?? selectedIdRef.current;
+      if (rows.some((r) => r._id === wanted)) {
+        setSelectedId(wanted);
+      } else {
+        setSelectedId(rows[0]?._id ?? null);
+        if (!rows.length) setDetail(null);
       }
     }).catch((err) => setError(err.message));
-  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [token]);
 
   useEffect(() => { loadLeads(); }, [loadLeads]);
   useEffect(() => { api.getUsers(token).then(setUsers).catch(() => {}); }, [token]);
@@ -150,17 +155,27 @@ export default function Leads() {
   }, [leads, search, statusFilter]);
 
   async function handleFieldChange(patch) {
-    const updated = await api.updateLead(detail._id, patch, token);
-    setDetail({ ...detail, ...updated });
-    loadLeads(detail._id);
+    setError('');
+    try {
+      const updated = await api.updateLead(detail._id, patch, token);
+      setDetail((prev) => ({ ...prev, ...updated }));
+      loadLeads(detail._id);
+    } catch (err) {
+      setError(err.message);
+    }
   }
 
   async function handleAddNote(e) {
     e.preventDefault();
     if (!noteText.trim()) return;
-    const note = await api.addNote(detail._id, noteText, token);
-    setDetail({ ...detail, notes: [...detail.notes, note] });
-    setNoteText('');
+    setError('');
+    try {
+      const note = await api.addNote(detail._id, noteText, token);
+      setDetail((prev) => ({ ...prev, notes: [...prev.notes, note] }));
+      setNoteText('');
+    } catch (err) {
+      setError(err.message);
+    }
   }
 
   async function handleGenerateReply() {

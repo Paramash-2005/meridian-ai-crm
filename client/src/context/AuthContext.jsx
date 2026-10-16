@@ -6,8 +6,12 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('crm_token'));
   const [user, setUser] = useState(() => {
-    const raw = localStorage.getItem('crm_user');
-    return raw ? JSON.parse(raw) : null;
+    try {
+      const raw = localStorage.getItem('crm_user');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
   });
 
   const login = useCallback(async (email, password) => {

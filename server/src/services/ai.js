@@ -52,10 +52,13 @@ function seededScore(lead) {
 const POSITIVE_WORDS = ['great', 'excited', 'love', 'interested', 'happy', 'perfect', 'yes', 'thanks', 'awesome'];
 const NEGATIVE_WORDS = ['not interested', 'too expensive', 'no', 'cancel', 'disappointed', 'unhappy', 'stop', 'never'];
 
+// Whole-word matching: plain substring checks make "no" fire on "know"/"now"/"note" and "yes" on "eyes".
+const hasWord = (text, word) => new RegExp(`\\b${word}\\b`).test(text);
+
 function keywordSentiment(text) {
   const lower = text.toLowerCase();
-  const positiveHits = POSITIVE_WORDS.filter((w) => lower.includes(w)).length;
-  const negativeHits = NEGATIVE_WORDS.filter((w) => lower.includes(w)).length;
+  const positiveHits = POSITIVE_WORDS.filter((w) => hasWord(lower, w)).length;
+  const negativeHits = NEGATIVE_WORDS.filter((w) => hasWord(lower, w)).length;
 
   if (negativeHits > positiveHits) return { label: 'negative', confidence: 0.6 + Math.min(0.3, negativeHits * 0.1) };
   if (positiveHits > negativeHits) return { label: 'positive', confidence: 0.6 + Math.min(0.3, positiveHits * 0.1) };
@@ -122,7 +125,11 @@ async function generateAutoReply(lead) {
         `Draft a reply to this lead:\nName: ${lead.name}\nCompany: ${lead.company || 'unknown'}\nSource: ${lead.source}\nRecent notes: ${(lead.notes || []).slice(-3).map((n) => n.text).join(' | ') || 'none'}`,
       ],
     ]);
-    return { reply: result.content, mock: false };
+    // Newer LangChain versions can return content as an array of blocks instead of a plain string.
+    const reply = Array.isArray(result.content)
+      ? result.content.map((part) => (typeof part === 'string' ? part : part.text || '')).join('')
+      : result.content;
+    return { reply, mock: false };
   } catch (err) {
     console.error('AI generateAutoReply failed, falling back to mock:', err.message);
     return { reply: mockAutoReply(lead), mock: true };

@@ -1,13 +1,14 @@
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
 const { createRedisClient, EVENTS_CHANNEL } = require('../config/redis');
+const { isOriginAllowed } = require('../config/origins');
 
 function initSocket(httpServer) {
   const io = new Server(httpServer, {
     cors: {
-      origin: (process.env.CLIENT_ORIGIN || 'http://localhost:5173')
-        .split(',')
-        .map((o) => o.trim().replace(/\/$/, '')),
+      origin(origin, callback) {
+        callback(null, isOriginAllowed(origin));
+      },
     },
   });
 

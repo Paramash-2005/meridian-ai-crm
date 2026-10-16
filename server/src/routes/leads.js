@@ -1,11 +1,39 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const Lead = require('../models/Lead');
+const User = require('../models/User');
 const { requireRole, scopeLeadsQuery } = require('../middleware/rbac');
 const { aiQueue } = require('../queues/aiQueue');
 const { publishEvent } = require('../socket/publish');
 const ai = require('../services/ai');
 
 const router = express.Router();
+
+const STATUSES = Lead.schema.path('status').enumValues;
+const SOURCES = Lead.schema.path('source').enumValues;
+
+const isValidId = (id) => mongoose.isValidObjectId(id) && String(id).length === 24;
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const asString = (v) => (typeof v === 'string' ? v : undefined);
+
+// Reject malformed ids up front so they return 404 instead of a Mongoose CastError (500).
+router.param('id', (req, res, next, id) => {
+  if (!isValidId(id)) return res.status(404).json({ error: 'Lead not found' });
+  next();
+});
+
+// Returns an error message, or null when the editable fields are acceptable.
+async function validateLeadFields({ status, source, value, assignedTo }) {
+  if (status !== undefined && !STATUSES.includes(status)) return `status must be one of: ${STATUSES.join(', ')}`;
+  if (source !== undefined && !SOURCES.includes(source)) return `source must be one of: ${SOURCES.join(', ')}`;
+  if (value !== undefined && value !== '' && (!Number.isFinite(Number(value)) || Number(value) < 0)) {
+    return 'value must be a non-negative number';
+  }
+  if (assignedTo) {
+    if (!isValidId(assignedTo) || !(await User.exists({ _id: assignedTo }))) return 'assignedTo must be an existing user';
+  }
+  return null;
+}
 
 function canAccessLead(req, lead) {
   if (req.user.role === 'admin') return true;
@@ -14,10 +42,21 @@ function canAccessLead(req, lead) {
 
 router.get('/', async (req, res) => {
   const query = scopeLeadsQuery(req);
-  if (req.query.status) query.status = req.query.status;
-  if (req.query.assignedTo) query.assignedTo = req.query.assignedTo;
-  if (req.query.search) {
-    query.$and = [...(query.$and || []), { $or: [{ name: new RegExp(req.query.search, 'i') }, { company: new RegExp(req.query.search, 'i') }] }];
+  const status = asString(req.query.status);
+  const assignedTo = asString(req.query.assignedTo);
+  const search = asString(req.query.search)?.trim();
+
+  if (status) {
+    if (!STATUSES.includes(status)) return res.status(400).json({ error: 'Invalid status filter' });
+    query.status = status;
+  }
+  if (assignedTo) {
+    if (!isValidId(assignedTo)) return res.status(400).json({ error: 'Invalid assignedTo filter' });
+    query.assignedTo = assignedTo;
+  }
+  if (search) {
+    const pattern = new RegExp(escapeRegex(search), 'i');
+    query.$and = [...(query.$and || []), { $or: [{ name: pattern }, { company: pattern }] }];
   }
 
   const leads = await Lead.find(query).populate('assignedTo', 'name email role').sort({ createdAt: -1 }).lean();
@@ -37,7 +76,10 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', async (req, res) => {
   const { name, email, phone, company, source, value, assignedTo } = req.body || {};
-  if (!name) return res.status(400).json({ error: 'Name is required' });
+  if (typeof name !== 'string' || !name.trim()) return res.status(400).json({ error: 'Name is required' });
+
+  const invalid = await validateLeadFields({ source, value, assignedTo: req.user.role === 'admin' ? assignedTo : null });
+  if (invalid) return res.status(400).json({ error: invalid });
 
   const lead = await Lead.create({
     name,
@@ -65,6 +107,12 @@ router.put('/:id', async (req, res) => {
   if (!canAccessLead(req, lead)) return res.status(403).json({ error: 'You do not have access to this lead' });
 
   const { name, email, phone, company, source, status, value, assignedTo } = req.body || {};
+  if (name !== undefined && (typeof name !== 'string' || !name.trim())) {
+    return res.status(400).json({ error: 'Name cannot be empty' });
+  }
+  const invalid = await validateLeadFields({ status, source, value, assignedTo: req.user.role === 'admin' ? assignedTo : null });
+  if (invalid) return res.status(400).json({ error: invalid });
+
   const statusChanged = status && status !== lead.status;
 
   if (name) lead.name = name;
@@ -89,7 +137,7 @@ router.put('/:id', async (req, res) => {
 
 router.post('/:id/notes', async (req, res) => {
   const { text } = req.body || {};
-  if (!text || !text.trim()) return res.status(400).json({ error: 'Note text is required' });
+  if (typeof text !== 'string' || !text.trim()) return res.status(400).json({ error: 'Note text is required' });
 
   const lead = await Lead.findById(req.params.id);
   if (!lead) return res.status(404).json({ error: 'Lead not found' });
