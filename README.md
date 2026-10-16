@@ -2,7 +2,16 @@
 
 An AI-assisted CRM built as a portfolio/interview project — lead management for a sales team, with
 automatic lead scoring, sentiment analysis on notes, AI-drafted replies, live real-time notifications,
-and role-based access control (Admin vs Sales Rep).
+and role-based access control (Administrator vs Sales Representative).
+
+## Live demo
+
+**https://meridian-ai-crm.vercel.app** — sign in as the administrator or either sales representative (logins below).
+AI runs in mock mode on the demo (no external API calls); set `OPENAI_API_KEY` to switch to live OpenAI.
+
+**What it demonstrates:** an async job pipeline (Bull/Redis worker kept off the request path), real-time
+fan-out (Redis pub/sub → Socket.io rooms scoped per user/role), server-enforced RBAC, structured LLM output
+(LangChain + Zod) with a deterministic mock fallback, and a split Vercel/Render/Atlas deployment.
 
 ## Architecture
 
@@ -39,8 +48,8 @@ mistaken for a live model call.
 
 ## Roles
 
-- **Admin**: sees every lead, can reassign leads to reps, manages the team roster (`/team`).
-- **Sales Rep**: only sees leads assigned to them or unassigned, cannot reassign leads to other reps,
+- **Administrator**: sees every lead, can reassign leads to reps, manages the team roster (`/team`).
+- **Sales Representative**: only sees leads assigned to them or unassigned, cannot reassign leads to other reps,
   cannot manage users. Enforced server-side (`server/src/middleware/rbac.js`), not just hidden in the UI.
 
 ## Running it locally (no Docker)
@@ -56,8 +65,8 @@ npm run dev                 # runs the API, the AI worker, and the frontend toge
 ```
 
 Leads start empty so you can add your own. If you want a populated CRM to demo (e.g. for an
-interview), run `npm run seed:demo` instead — it adds 24 realistic sample leads with notes and
-queues them for AI scoring. Either way, `npm run seed` always resets the 3 accounts below and wipes
+interview), run `npm run seed:demo` instead — it adds 24 sample leads (unique companies, split evenly between James and Priya,
+two left unassigned) with notes and queues them for AI scoring. Either way, `npm run seed` always resets the 3 accounts below and wipes
 existing leads first, so re-run it any time you want a clean slate.
 
 Open **http://localhost:5173**.
@@ -65,9 +74,9 @@ Open **http://localhost:5173**.
 **Demo logins:**
 | Email | Password | Role |
 |---|---|---|
-| paramash@meridiancrm.com | Admin@123 | Admin |
-| james@meridiancrm.com | Sales@123 | Sales Rep |
-| priya@meridiancrm.com | Sales@123 | Sales Rep |
+| paramash@meridiancrm.com | Admin@123 | Administrator |
+| james@meridiancrm.com | Sales@123 | Sales Representative |
+| priya@meridiancrm.com | Sales@123 | Sales Representative |
 
 To enable live AI calls, put a real key in `server/.env`:
 ```
@@ -114,8 +123,6 @@ client/src/
 - The Docker Mongo and Redis services require authentication (username/password, and a Redis
   `requirepass`), configured via the root `.env` — don't run them without credentials in any shared
   environment.
-- `legacy-sqlite-mvp/` is an earlier iteration of this project (SQLite-based) kept for reference; it is
-  not part of the running app.
 
 ## Deploying (Vercel + Render)
 
@@ -124,7 +131,7 @@ model, so the stack is split:
 
 | Piece | Host | Notes |
 |---|---|---|
-| React client (`client/`) | **Vercel** | Root directory `client`, framework Vite. `client/vercel.json` handles SPA routing. |
+| React client (`client/`) | **Vercel** | Root directory `client` (or the repo root — the root `vercel.json` also builds it). Rewrites SPA routes and proxies `/api` and `/socket.io` to Render. |
 | API (+ embedded AI worker) | **Render** free web service | Defined in `render.yaml`. `EMBED_WORKER=true` runs the queue worker in the API process. |
 | Redis | Render Key Value (free) | Created by the same Blueprint; `REDIS_URL` is wired automatically. |
 | MongoDB | MongoDB Atlas (free M0) | Dedicated DB user; set `MONGO_URI` in Render. |
@@ -132,9 +139,8 @@ model, so the stack is split:
 1. Create the Atlas cluster, then deploy `render.yaml` as a Blueprint and enter `MONGO_URI` and
    `CLIENT_ORIGIN` (your Vercel URL) when prompted.
 2. Seed once from a Render shell: `npm run seed:demo`.
-3. In Vercel, set:
-   - `VITE_API_URL=https://<your-api>.onrender.com/api`
-   - `VITE_SOCKET_URL=https://<your-api>.onrender.com`
+3. In `vercel.json`, point the `/api` and `/socket.io` rewrites at your Render URL. The client uses
+   same-origin `/api` (see `client/.env.production`), so no Vercel environment variables are needed.
 4. Optional: set `OPENAI_API_KEY` for live AI; otherwise it runs in mock mode.
 
 `CLIENT_ORIGIN` accepts a comma-separated list, so a custom domain and preview URLs can coexist. On a

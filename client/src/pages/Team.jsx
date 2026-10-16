@@ -45,8 +45,8 @@ function NewUserModal({ onClose, onCreated, token }) {
         <div className="flex flex-col gap-1.5">
           <label htmlFor="new-user-role" className="text-xs font-medium">Role</label>
           <select id="new-user-role" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="px-2.5 py-2 text-[13px] border border-hairline rounded-[3px]">
-            <option value="sales-rep">Sales Rep</option>
-            <option value="admin">Admin</option>
+            <option value="sales-rep">Sales Representative</option>
+            <option value="admin">Administrator</option>
           </select>
         </div>
         {error && <p className="m-0 text-[12.5px] text-critical">{error}</p>}
@@ -93,7 +93,7 @@ export default function Team() {
               <span className="font-medium text-sm">{u.name}</span>
               <span className="text-xs text-ink-secondary">{u.email}</span>
               <span className="badge mt-1 self-start" style={{ color: u.role === 'admin' ? 'var(--color-accent)' : 'var(--color-navy)' }}>
-                {u.role === 'admin' ? 'Admin' : 'Sales Rep'}
+                {u.role === 'admin' ? 'Administrator' : 'Sales Representative'}
               </span>
             </div>
           </div>

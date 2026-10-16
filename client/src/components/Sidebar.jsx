@@ -67,7 +67,7 @@ export default function Sidebar() {
         </div>
         <div className="flex flex-col leading-tight min-w-0 flex-grow">
           <span className="text-xs text-paper font-medium truncate">{user?.name}</span>
-          <span className="text-[10.5px] text-[#7C8592] capitalize">{user?.role?.replace('-', ' ')}</span>
+          <span className="text-[10.5px] text-[#7C8592]">{user?.role === 'admin' ? 'Administrator' : 'Sales Representative'}</span>
         </div>
         <button onClick={logout} title="Sign out" className="text-[#7C8592] hover:text-paper text-[11px] shrink-0 cursor-pointer">
           Sign out

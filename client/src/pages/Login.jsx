@@ -47,7 +47,7 @@ export default function Login() {
 
         <div className="flex justify-between items-end text-[11px] text-[#6b7684] tracking-wide">
           <span>&copy; 2026 Meridian CRM</span>
-          <span>SOC 2 Type II &middot; ISO 27001</span>
+          <span>AI-assisted pipeline management</span>
         </div>
       </div>
 
@@ -79,7 +79,6 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder="Admin@123"
               className="box-border w-full px-3.5 py-2.5 text-[13.5px] border border-hairline rounded-[3px] bg-surface"
             />
           </div>
@@ -92,8 +91,9 @@ export default function Login() {
 
           <div className="text-[11.5px] text-ink-faint text-center leading-relaxed">
             <p className="m-0">Demo logins:</p>
-            <p className="m-0">paramash@meridiancrm.com / Admin@123 (admin)</p>
-            <p className="m-0">james@meridiancrm.com / Sales@123 (sales rep)</p>
+            <p className="m-0">paramash@meridiancrm.com / Admin@123 (administrator)</p>
+            <p className="m-0">james@meridiancrm.com / Sales@123 (sales representative)</p>
+            <p className="m-0">priya@meridiancrm.com / Sales@123 (sales representative)</p>
           </div>
         </form>
       </div>

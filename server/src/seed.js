@@ -26,7 +26,9 @@ const COMPANIES = [
   'Cascadia Freight Co.', 'BrightPath Analytics', 'Ferro Industrial Supply', 'Summit Legal Partners',
   'Hearthstone Property Group', 'Calloway Insurance Brokers', 'Tidal Wave Software', 'Ironclad Security Systems',
   'Merchant & Wells Retail', 'Oakmont Financial Advisors', 'Pinnacle HR Solutions', 'Delta Grid Energy',
-  'Silverline Telecom', 'Anchor Point Logistics',
+  'Silverline Telecom', 'Anchor Point Logistics', 'Granite Peak Mining Supply', 'Lakeshore Medical Billing',
+  'Redwood Architecture Studio', 'Keystone Equipment Rental', 'Meadowbrook Senior Living', 'Orion Aerospace Components',
+  'Bluewater Marine Services', 'Crestview Education Group',
 ];
 const FIRST_NAMES = ['Daniel', 'Sofia', 'Marcus', 'Elena', 'Theo', 'Naomi', 'Victor', 'Camille', 'Owen', 'Priya', 'Isaac', 'Lucia', 'Nadia', 'Felix', 'Grace', 'Adrian', 'Yusuf', 'Ines'];
 const LAST_NAMES = ['Reyes', 'Whitfield', 'Bergman', 'Okonkwo', 'Marsh', 'Delacroix', 'Halvorsen', 'Bianchi', 'Fitzgerald', 'Novak', 'Sato', 'Abara', 'Lindqvist', 'Moreau', 'Castillo'];
@@ -74,15 +76,21 @@ async function main() {
   const now = new Date();
   const leadsToInsert = [];
 
+  // Unique companies and names, reps alternate so both carry an even book of business,
+  // and a couple of leads stay unassigned to demonstrate the admin triage flow.
+  const companies = [...COMPANIES].sort(() => rand() - 0.5);
+  const usedNames = new Set();
   for (let i = 0; i < 24; i++) {
-    const name = `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`;
-    const company = pick(COMPANIES);
+    let name;
+    do { name = `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`; } while (usedNames.has(name));
+    usedNames.add(name);
+    const company = companies[i];
     const source = pick(SOURCES);
     const status = pick(STATUSES);
     const value = randInt(2, 150) * 1000;
     const daysAgo = randInt(0, 120);
     const createdAt = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
-    const assignedTo = rand() < 0.15 ? null : pick(reps)._id;
+    const assignedTo = i % 12 === 11 ? null : reps[i % 2]._id;
     const noteCount = randInt(0, 3);
     const notes = Array.from({ length: noteCount }, () => ({
       text: pick(NOTE_TEMPLATES),
