@@ -3,7 +3,7 @@
   "framework": "vite",
   "rewrites": [
     { "source": "/api/:path*", "destination": "https://meridian-api-rtqa.onrender.com/api/:path*" },
-    { "source": "/socket.io/:path*", "destination": "https://meridian-api-rtqa.onrender.com/socket.io/:path*" },
+    { "source": "/socket.io/(.*)", "destination": "https://meridian-api-rtqa.onrender.com/socket.io/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
