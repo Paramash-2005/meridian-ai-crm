@@ -118,6 +118,7 @@ async function main() {
   const inserted = await Lead.insertMany(leadsToInsert);
   for (const lead of inserted) {
     await aiQueue.add('score', { leadId: lead.id });
+    for (const note of lead.notes) await aiQueue.add('sentiment', { leadId: lead.id, noteId: note.id });
   }
 
   console.log(`Added ${inserted.length} demo leads (AI scoring jobs queued — start the worker to process them).`);

@@ -13,6 +13,12 @@ AI runs in mock mode on the demo (no external API calls); set `OPENAI_API_KEY` t
 fan-out (Redis pub/sub → Socket.io rooms scoped per user/role), server-enforced RBAC, structured LLM output
 (LangChain + Zod) with a deterministic mock fallback, and a split Vercel/Render/Atlas deployment.
 
+### Screenshots
+
+![Dashboard — pipeline KPIs, 4-month lead trend, status breakdown, hottest leads by AI score](docs/screenshots/dashboard.png)
+
+![Leads — owner, status and AI score per lead, with the detail panel showing AI rationale, auto-reply drafts and note sentiment](docs/screenshots/leads.png)
+
 ## Architecture
 
 | Layer | Tech | Role |

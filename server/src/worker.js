@@ -42,6 +42,18 @@ async function main() {
     publishEvent('lead:note-scored', { leadId: lead.id, noteId, sentiment: { label, confidence }, mock }, rooms(lead));
   });
 
+  // Notes created outside the API (e.g. seeded data) never got a sentiment job; queue them so the UI
+  // doesn't show "analyzing…" forever. jobId makes this idempotent across restarts.
+  const unscored = await Lead.find({ 'notes.sentiment.label': null }, 'notes').lean();
+  let queued = 0;
+  for (const lead of unscored) {
+    for (const note of lead.notes.filter((n) => !n.sentiment?.label)) {
+      await aiQueue.add('sentiment', { leadId: String(lead._id), noteId: String(note._id) }, { jobId: `sentiment-${note._id}` });
+      queued++;
+    }
+  }
+  if (queued) console.log(`Queued sentiment analysis for ${queued} existing note(s)`);
+
   aiQueue.on('failed', async (job, err) => {
     console.error(`Job ${job.name} (lead ${job.data.leadId}) failed:`, err.message);
     if (job.name === 'score' && job.attemptsMade >= job.opts.attempts) {
