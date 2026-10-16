@@ -16,7 +16,9 @@ export function SocketProvider({ children }) {
       setSocket(null);
       return;
     }
-    const s = io(SOCKET_URL || undefined, { auth: { token } });
+    // Same-origin ('' URL) means we're behind the Vercel proxy, which can't upgrade to WebSocket —
+    // use long-polling only there instead of failing the upgrade and logging console errors.
+    const s = io(SOCKET_URL || undefined, { auth: { token }, transports: SOCKET_URL ? undefined : ['polling'] });
     setSocket(s);
     return () => s.disconnect();
   }, [token]);
