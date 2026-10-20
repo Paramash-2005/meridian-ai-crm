@@ -9,7 +9,8 @@
     "worker": "node src/worker.js",
     "worker:dev": "nodemon src/worker.js",
     "seed": "node src/seed.js",
-    "seed:demo": "node src/seed.js --demo-leads"
+    "seed:demo": "node src/seed.js --demo-leads",
+    "test": "node --test \"test/**/*.test.js\""
   },
   "keywords": [],
   "type": "commonjs",

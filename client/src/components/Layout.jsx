@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { SocketProvider } from '../context/SocketContext';
 import Sidebar from './Sidebar';
 import ToastStack from './ToastStack';

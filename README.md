@@ -1,6 +1,6 @@
 # Meridian CRM
 
-An AI-assisted CRM built as a portfolio/interview project — lead management for a sales team, with
+An AI-assisted CRM for sales teams — lead management with
 automatic lead scoring, sentiment analysis on notes, AI-drafted replies, live real-time notifications,
 and role-based access control (Administrator vs Sales Representative).
 
@@ -88,6 +88,16 @@ To enable live AI calls, put a real key in `server/.env`:
 ```
 OPENAI_API_KEY=sk-...
 ```
+
+## Tests
+
+```bash
+cd server && npm test
+```
+
+The API suite uses Node's built-in test runner and runs with no MongoDB or Redis: it covers auth
+validation, JWT enforcement on protected routes, RBAC role checks and lead scoping, the CORS
+allowlist and mock sentiment. It also runs in CI alongside client lint and build.
 
 ## Running it with Docker
 

@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { api } from '../api';
 import StatTile from '../components/StatTile';
-import { LEAD_STATUS_COLORS } from '../components/StatusBadge';
+import { LEAD_STATUS_COLORS } from '../utils/colors';
 import { money } from '../utils/format';
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

@@ -1,4 +1,4 @@
-import { useSocket } from '../context/SocketContext';
+import { useSocket } from '../context/useSocket';
 
 export default function ToastStack() {
   const { toasts, dismissToast } = useSocket();

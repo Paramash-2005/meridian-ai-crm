@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useSocket } from '../context/SocketContext';
+import { useAuth } from '../context/useAuth';
+import { useSocket } from '../context/useSocket';
 import { api } from '../api';
 import Avatar from '../components/Avatar';
-import StatusBadge, { SENTIMENT_COLORS } from '../components/StatusBadge';
+import StatusBadge from '../components/StatusBadge';
+import { SENTIMENT_COLORS } from '../utils/colors';
 import { money, timeAgo, formatDate } from '../utils/format';
 
 const STATUS_OPTIONS = ['New', 'Contacted', 'Qualified', 'Proposal', 'Negotiation', 'Won', 'Lost'];
